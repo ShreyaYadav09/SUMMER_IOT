@@ -1,0 +1,140 @@
+#include <DHT.h>
+#include "BluetoothSerial.h"
+
+BluetoothSerial SerialBT;
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+#define MQ2_PIN 34
+
+#define GREEN_LED 25
+#define YELLOW_LED 26
+#define RED_LED 27
+
+#define BUZZER 14
+
+void setup() {
+
+  Serial.begin(115200);
+  SerialBT.begin("ESP32_AirMonitor");
+
+  dht.begin();
+
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(YELLOW_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+
+  Serial.println("Timestamp,MQ2 Value,Temperature,Humidity,Severity");
+}
+
+void loop() {
+
+  int gas = analogRead(MQ2_PIN);
+
+  float temp = dht.readTemperature();
+  float hum = dht.readHumidity();
+
+  String level;
+
+  digitalWrite(GREEN_LED, LOW);
+  digitalWrite(YELLOW_LED, LOW);
+  digitalWrite(RED_LED, LOW);
+
+  noTone(BUZZER);
+
+  if(gas < 1200){
+
+      level="SAFE";
+
+      digitalWrite(GREEN_LED,HIGH);
+
+  }
+
+  else if(gas <2500){
+
+      level="MODERATE";
+
+      digitalWrite(YELLOW_LED,HIGH);
+
+      tone(BUZZER,1000,300);
+
+      SerialBT.println("WARNING\nModerate Smoke Detected\nGas="+String(gas));
+
+  }
+
+  else{
+
+      level="DANGER";
+
+      digitalWrite(RED_LED,HIGH);
+
+      tone(BUZZER,2000);
+
+      SerialBT.println("DANGER!!");
+      SerialBT.println("Smoke Level Critical");
+      SerialBT.println("Gas="+String(gas));
+      SerialBT.println("Open Windows");
+      SerialBT.println("Leave Room");
+
+  }
+
+  Serial.print(millis()/1000);
+  Serial.print(",");
+  Serial.print(gas);
+  Serial.print(",");
+  Serial.print(temp);
+  Serial.print(",");
+  Serial.print(hum);
+  Serial.print(",");
+  Serial.println(level);
+
+  delay(2000);
+
+}
+
+
+Timestamp,MQ2 Value,Temperature,Humidity,Severity
+
+1,980,22.8,51,SAFE
+
+3,1560,23.1,50,MODERATE
+
+5,2870,24.0,48,DANGER
+
+7,1100,23.5,49,SAFE
+
+
+SAFE
+
+Gas:210
+Temp:22.8C
+Humidity:51%
+
+
+WARNING
+
+Moderate Smoke Detected
+
+Gas=430
+
+Check Fireplace
+
+
+DANGER!!
+
+Smoke Level Critical
+
+Gas=765
+
+Open Windows
+
+Leave Room if Necessary
+
+| MQ2 Reading | Level    | LED    | Buzzer             |
+| ----------- | -------- | ------ | ------------------ |
+| <1200       | SAFE     | Green  | OFF                |
+| 1200–2499   | MODERATE | Yellow | 1000 Hz Beep       |
+| ≥2500       | DANGER   | Red    | Continuous 2000 Hz |
