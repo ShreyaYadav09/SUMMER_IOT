@@ -1,0 +1,19 @@
+Quality of Service (QoS) in MQTT defines the level of guarantee that a message will be delivered between the publisher and the subscriber.
+MQTT provides three QoS levels.
+| QoS Level                 | Description                                                                                                          | Reliability | Use Case                                                                                       |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| **QoS 0 – At most once**  | The message is sent only once with no acknowledgment. If it is lost, it is not retransmitted.                        | Lowest      | Sensor data where occasional data loss is acceptable (e.g., room temperature).                 |
+| **QoS 1 – At least once** | The sender retransmits the message until it receives an acknowledgment. The receiver may receive duplicate messages. | Medium      | Water level monitoring, environmental sensors, and smart agriculture.                          |
+| **QoS 2 – Exactly once**  | The message is delivered exactly once using a four-step handshake, preventing duplicates.                            | Highest     | Banking, payment systems, and industrial automation where duplicate messages are unacceptable. |
+For an IoT water level monitoring system, QoS 1 (At least once) is the best choice.
+
+Reason:
+
+Ensures important water level alerts are delivered reliably.
+If a message is lost, MQTT automatically retransmits it until an acknowledgment is received.
+Occasional duplicate messages are acceptable because the application can ignore repeated readings.
+It provides a good balance between reliability, network bandwidth, and power consumption.
+QoS 2 offers higher reliability but introduces additional communication overhead, making it less efficient for most sensor-based IoT applications.
+Conclusion
+
+QoS 1 is the most suitable option for water level monitoring because it ensures reliable delivery of critical alerts while maintaining efficient network and power usage.
