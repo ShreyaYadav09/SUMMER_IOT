@@ -1,0 +1,229 @@
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <UniversalTelegramBot.h>
+
+
+// Wi-Fi Details
+
+const char* ssid="YOUR_WIFI";
+const char* password="YOUR_PASSWORD";
+
+
+// Telegram Bot
+
+#define BOT_TOKEN "YOUR_BOT_TOKEN"
+
+#define CHAT_ID "YOUR_CHAT_ID"
+
+
+WiFiClientSecure client;
+
+UniversalTelegramBot bot(
+BOT_TOKEN,
+client
+);
+
+
+// Pins
+
+#define PIR_PIN 27
+
+#define BUZZER 25
+
+#define LED1 14
+#define LED2 26
+#define LED3 33
+
+#define POT_PIN 34
+
+
+
+// Time Window
+
+int startHour=22;
+int endHour=6;
+
+
+// Variables
+
+unsigned long lastMotion=0;
+
+bool alertSent=false;
+
+
+
+void setup(){
+
+
+Serial.begin(115200);
+
+
+pinMode(PIR_PIN,INPUT);
+
+pinMode(BUZZER,OUTPUT);
+
+pinMode(LED1,OUTPUT);
+pinMode(LED2,OUTPUT);
+pinMode(LED3,OUTPUT);
+
+
+WiFi.begin(ssid,password);
+
+
+Serial.print("Connecting");
+
+
+while(WiFi.status()!=WL_CONNECTED){
+
+delay(500);
+Serial.print(".");
+
+}
+
+
+Serial.println("\nWiFi Connected");
+
+
+client.setInsecure();
+
+
+Serial.println("Security System Ready");
+
+}
+
+
+
+void loop(){
+
+
+int motion=digitalRead(PIR_PIN);
+
+
+int sensitivity=
+map(analogRead(POT_PIN),
+0,4095,
+0,100);
+
+
+
+if(motion==HIGH){
+
+
+Serial.println("Motion Detected");
+
+
+Serial.print("Sensitivity:");
+Serial.println(sensitivity);
+
+
+
+alarmSequence();
+
+
+
+if(!alertSent){
+
+sendTelegram();
+
+alertSent=true;
+
+}
+
+
+}
+
+else{
+
+
+alertSent=false;
+
+turnOff();
+
+}
+
+
+
+delay(500);
+
+}
+
+
+
+// Alarm escalation
+
+void alarmSequence(){
+
+
+
+// Stage 1 Warning
+
+digitalWrite(LED1,HIGH);
+
+tone(BUZZER,800,300);
+
+delay(1000);
+
+
+
+// Stage 2 Alarm
+
+digitalWrite(LED2,HIGH);
+
+tone(BUZZER,1200,500);
+
+delay(1000);
+
+
+
+// Stage 3 Urgent
+
+digitalWrite(LED3,HIGH);
+
+tone(BUZZER,2000);
+
+delay(2000);
+
+
+
+}
+
+
+
+void turnOff(){
+
+
+digitalWrite(LED1,LOW);
+
+digitalWrite(LED2,LOW);
+
+digitalWrite(LED3,LOW);
+
+noTone(BUZZER);
+
+
+}
+
+
+
+// Telegram Message
+
+void sendTelegram(){
+
+
+String message=
+"🚨 Motion Detected!\n"
+"Security Alert: Shop Area";
+
+
+
+bot.sendMessage(
+CHAT_ID,
+message,
+""
+);
+
+
+Serial.println("Telegram Sent");
+
+
+}
