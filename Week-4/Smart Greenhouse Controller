@@ -1,0 +1,265 @@
+#include <DHT.h>
+#include <LiquidCrystal_I2C.h>
+
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+
+
+DHT dht(DHTPIN,DHTTYPE);
+
+
+LiquidCrystal_I2C lcd(0x27,16,2);
+
+
+// Relay pins
+
+#define HEATER 25
+#define FAN 26
+#define LIGHT 27
+
+
+#define LDR_PIN 34
+
+
+
+float temp;
+float humidity;
+
+
+// Light averaging
+
+int lightSamples[10];
+
+int sampleIndex=0;
+
+
+
+void setup(){
+
+Serial.begin(115200);
+
+
+dht.begin();
+
+
+lcd.init();
+lcd.backlight();
+
+
+
+pinMode(HEATER,OUTPUT);
+pinMode(FAN,OUTPUT);
+pinMode(LIGHT,OUTPUT);
+
+
+
+digitalWrite(HEATER,LOW);
+digitalWrite(FAN,LOW);
+digitalWrite(LIGHT,LOW);
+
+
+
+lcd.print("Greenhouse");
+
+delay(2000);
+
+}
+
+
+
+void loop(){
+
+
+temp=dht.readTemperature();
+
+humidity=dht.readHumidity();
+
+
+
+int lightValue=analogRead(LDR_PIN);
+
+
+
+lightSamples[sampleIndex]=lightValue;
+
+sampleIndex++;
+
+if(sampleIndex>=10)
+sampleIndex=0;
+
+
+
+int avgLight=0;
+
+
+for(int i=0;i<10;i++){
+
+avgLight+=lightSamples[i];
+
+}
+
+
+avgLight/=10;
+
+
+
+controlTemperature(temp);
+
+controlHumidity(humidity);
+
+controlLight(avgLight);
+
+
+
+displayData(temp,humidity,avgLight);
+
+
+
+delay(3000);
+
+
+}
+
+
+
+
+// Temperature control
+// Desired: 18-22°C
+
+void controlTemperature(float t){
+
+
+
+if(t < 18){
+
+digitalWrite(HEATER,HIGH);
+
+digitalWrite(FAN,LOW);
+
+Serial.println("Heater ON");
+
+}
+
+
+
+else if(t > 22){
+
+digitalWrite(HEATER,LOW);
+
+digitalWrite(FAN,HIGH);
+
+Serial.println("Fan ON");
+
+}
+
+
+
+else{
+
+digitalWrite(HEATER,LOW);
+
+digitalWrite(FAN,LOW);
+
+Serial.println("Temperature OK");
+
+}
+
+
+}
+
+
+
+
+// Humidity control
+
+void controlHumidity(float h){
+
+
+if(h > 70){
+
+digitalWrite(FAN,HIGH);
+
+}
+
+else if(h <60){
+
+digitalWrite(FAN,LOW);
+
+}
+
+
+}
+
+
+
+
+// Light control
+
+void controlLight(int light){
+
+
+
+// Low value means darkness
+
+
+if(light <1500){
+
+digitalWrite(LIGHT,HIGH);
+
+Serial.println("Grow Light ON");
+
+}
+
+else{
+
+digitalWrite(LIGHT,LOW);
+
+Serial.println("Grow Light OFF");
+
+}
+
+
+}
+
+
+
+
+void displayData(float t,float h,int l){
+
+
+
+lcd.clear();
+
+
+lcd.setCursor(0,0);
+
+lcd.print("T:");
+
+lcd.print(t);
+
+lcd.print("C H:");
+
+lcd.print(h);
+
+
+lcd.setCursor(0,1);
+
+lcd.print("Light:");
+
+lcd.print(l);
+
+
+Serial.println("----------------");
+
+Serial.print("Temp:");
+Serial.println(t);
+
+Serial.print("Humidity:");
+Serial.println(h);
+
+Serial.print("Light Avg:");
+Serial.println(l);
+
+
+}
