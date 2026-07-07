@@ -1,0 +1,187 @@
+1. Introduction
+
+Jammu is a rapidly developing urban area where efficient management of traffic, air quality, and waste collection is important for improving citizen services.
+An IoT-based smart city system can use connected sensors, wireless communication, cloud platforms, and dashboards to monitor city resources in real time.
+This proposal focuses on three areas:
+
+Smart Street Lighting
+Smart Parking Management
+Smart Air Quality Monitoring
+1. Smart Street Lighting System
+Objective
+
+Automatically control street lights based on environmental conditions and vehicle/pedestrian movement to reduce electricity consumption.
+
+Sensors Required
+LDR sensor – Detects day/night conditions
+PIR sensor – Detects pedestrian or vehicle movement
+Current sensor – Monitors power consumption
+Hardware
+ESP32 microcontroller
+LDR sensor
+PIR sensor
+Relay/MOSFET driver
+LED street light model
+Connectivity
+Wi-Fi / LoRaWAN
+MQTT protocol for data transmission
+
+Light Sensor + PIR Sensor
+          |
+          ↓
+        ESP32
+          |
+       MQTT
+          |
+          ↓
+     Cloud Server
+          |
+          ↓
+ Smart City Dashboard
+
+Working
+
+During daytime, lights remain OFF. At night, lights operate at low brightness. 
+When motion is detected, brightness increases automatically.
+The system reduces unnecessary power usage.
+
+| Component    | Cost (INR) |
+| ------------ | ---------: |
+| ESP32        |       ₹500 |
+| Sensors      |       ₹200 |
+| LED Driver   |       ₹300 |
+| Power Supply |       ₹200 |
+| Total        |      ₹1200 |
+
+2. Smart Parking Availability System
+Objective
+
+Provide real-time information about available parking spaces and reduce traffic congestion caused by searching for parking.
+
+Sensors Required
+Ultrasonic sensor (HC-SR04) for vehicle detection
+IR sensor for parking slot monitoring
+Hardware
+ESP32
+Ultrasonic sensors
+LED indicators
+Wi-Fi module
+Connectivity
+Wi-Fi / LoRa
+HTTP REST API or MQTT
+
+DATA FLOW :
+Parking Sensor Nodes
+          |
+          ↓
+        ESP32
+          |
+       MQTT/HTTP
+          |
+          ↓
+       Cloud Database
+          |
+          ↓
+ Mobile Parking App
+
+Working
+
+Each parking slot has a sensor. When a vehicle occupies a slot, the sensor updates the cloud database.
+Users can view available parking spaces through a mobile application.
+
+APPROXIMATE COST PER NODE :
+| Component         | Cost (INR) |
+| ----------------- | ---------: |
+| ESP32             |       ₹500 |
+| Ultrasonic Sensor |       ₹150 |
+| LED Indicator     |        ₹50 |
+| Enclosure         |       ₹200 |
+| Total             |       ₹900 |
+
+3. Smart Air Quality Monitoring System
+Objective
+
+Monitor pollution levels in Jammu and provide alerts during poor air quality conditions.
+
+Sensors Required
+MQ-135 gas sensor for air quality
+PM2.5 sensor
+DHT11 temperature and humidity sensor
+Hardware
+ESP32
+MQ-135
+PMS5003 particulate sensor
+DHT11
+Connectivity
+LoRaWAN for long-distance communication
+MQTT for cloud publishing
+
+Data Flow :
+Air Quality Sensors
+          |
+          ↓
+        ESP32
+          |
+        LoRa
+          |
+          ↓
+     IoT Gateway
+          |
+        MQTT
+          |
+          ↓
+        Cloud
+          |
+          ↓
+ Dashboard / Alerts
+Working
+
+Sensors continuously measure pollutants and environmental conditions.
+If pollution exceeds safe limits, the dashboard generates alerts for authorities and citizens.
+
+APPROXIMATE COST PER NODE : 
+| Component    | Cost (INR) |
+| ------------ | ---------: |
+| ESP32        |       ₹500 |
+| MQ-135       |       ₹200 |
+| PM2.5 Sensor |      ₹1500 |
+| DHT11        |       ₹100 |
+| Total        |      ₹2300 |
+
+OVERALL SMART CITY ARCHITECHTURE :
+       IoT Sensor Nodes
+              |
+              |
+     Wi-Fi / LoRa / MQTT
+              |
+              ↓
+        IoT Gateway
+              |
+              ↓
+        Cloud Platform
+              |
+       ----------------
+       |              |
+ Dashboard        Mobile App
+       |
+ Alerts & Analytics
+
+Security Considerations
+Use HTTPS/TLS encryption for cloud communication.
+Store device credentials securely.
+Use MQTT authentication.
+Update ESP32 firmware regularly.
+Avoid storing passwords directly in source code.
+Conclusion
+
+The proposed IoT-based smart city system can help Jammu improve energy efficiency, reduce traffic problems, and monitor environmental conditions. 
+Smart street lighting can reduce electricity waste, smart parking can improve traffic flow, and air quality monitoring can help authorities take timely action.
+Using ESP32 nodes, MQTT communication, and cloud dashboards provides a scalable and cost-effective solution suitable for future smart city development.
+
+Estimated Deployment Cost:
+
+Street Lighting Node: ~₹1200/node
+Parking Node: ~₹900/node
+Air Quality Node: ~₹2300/node
+
+The system can be expanded in the future by adding smart water management, waste monitoring, and public safety applications.
