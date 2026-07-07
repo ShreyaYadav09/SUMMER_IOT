@@ -1,0 +1,21 @@
+Wi-Fi-connected IoT devices are increasingly targeted by cyberattacks because they often have limited security features and are connected to home or enterprise networks.
+One common attack vector is exploiting WPA2 vulnerabilities, such as the KRACK (Key Reinstallation Attack),
+which allows attackers to manipulate the WPA2 handshake and potentially intercept or modify encrypted network traffic if devices are not patched.
+Another threat is the evil twin attack, where an attacker creates a fake Wi-Fi access point that mimics a legitimate network.
+If an ESP32 or another IoT device connects to this rogue access point, sensitive information may be exposed or communications intercepted.
+
+To improve security, ESP32-based IoT devices should follow several best practices.
+Using WPA3 instead of WPA2 provides stronger encryption and better protection against password-guessing attacks.
+When connecting to cloud services, developers should use HTTPS/TLS and implement certificate pinning,
+which verifies that the server's certificate matches a trusted certificate embedded in the device.
+This helps prevent man-in-the-middle attacks. Devices should also use strong, unique Wi-Fi passwords, keep firmware updated,
+disable unnecessary services, and securely store credentials using protected storage mechanisms where possible.
+
+Hardcoding Wi-Fi passwords directly into source code is dangerous because anyone with access to the code repository or compiled firmware may extract these credentials.
+If the code is accidentally shared on GitHub or another public platform, attackers can gain unauthorized access to the Wi-Fi network and compromise connected devices.
+A safer approach is to store credentials in a separate configuration file (for example, config.h) 
+that is excluded from version control using .gitignore, or to use secure provisioning and encrypted storage.
+
+References
+Wi-Fi Alliance. WPA3™ Security. Available at: https://www.wi-fi.org/discover-wi-fi/security
+OWASP Foundation. OWASP Internet of Things Project. Available at: https://owasp.org/www-project-internet-of-things/
