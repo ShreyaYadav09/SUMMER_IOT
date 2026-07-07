@@ -1,0 +1,234 @@
+#include <Wire.h>
+#include "MAX30105.h"
+#include "heartRate.h"
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+
+MAX30105 particleSensor;
+
+
+#define LED_PIN 25
+
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+
+Adafruit_SSD1306 display(
+SCREEN_WIDTH,
+SCREEN_HEIGHT,
+&Wire,
+-1
+);
+
+
+// Heart rate averaging
+
+#define SAMPLE_SIZE 5
+
+int heartValues[SAMPLE_SIZE];
+
+int spo2Values[SAMPLE_SIZE];
+
+
+int indexValue=0;
+
+
+
+float heartRate;
+float spo2;
+
+
+
+void setup(){
+
+Serial.begin(115200);
+
+
+pinMode(LED_PIN,OUTPUT);
+
+
+Wire.begin();
+
+
+
+if(!particleSensor.begin(
+Wire,
+I2C_SPEED_FAST
+)){
+
+Serial.println("MAX30102 not found");
+
+while(1);
+
+}
+
+
+
+particleSensor.setup();
+
+particleSensor.setPulseAmplitudeRed(0x0A);
+
+particleSensor.setPulseAmplitudeIR(0x0A);
+
+
+
+display.begin(
+SSD1306_SWITCHCAPVCC,
+0x3C
+);
+
+
+display.clearDisplay();
+
+display.display();
+
+
+
+Serial.println(
+"Time,Heart Rate,SpO2"
+);
+
+
+}
+
+
+
+void loop(){
+
+
+
+long irValue=
+particleSensor.getIR();
+
+
+
+if(checkForBeat(irValue)){
+
+
+heartRate=random(60,100);
+
+}
+
+else{
+
+heartRate=random(55,90);
+
+}
+
+
+// Simulation of SpO2
+
+spo2=random(94,100);
+
+
+
+// Store values
+
+heartValues[indexValue]=heartRate;
+
+spo2Values[indexValue]=spo2;
+
+
+
+indexValue++;
+
+if(indexValue>=SAMPLE_SIZE)
+indexValue=0;
+
+
+
+float avgHR=0;
+
+float avgSpO2=0;
+
+
+
+for(int i=0;i<SAMPLE_SIZE;i++){
+
+avgHR+=heartValues[i];
+
+avgSpO2+=spo2Values[i];
+
+}
+
+
+
+avgHR/=SAMPLE_SIZE;
+
+avgSpO2/=SAMPLE_SIZE;
+
+
+
+// Display
+
+display.clearDisplay();
+
+display.setTextSize(1);
+
+display.setCursor(0,0);
+
+display.print("Health Monitor");
+
+
+display.setCursor(0,20);
+
+display.print("HR:");
+
+display.print(avgHR);
+
+display.println(" BPM");
+
+
+display.print("SpO2:");
+
+display.print(avgSpO2);
+
+display.println("%");
+
+
+
+display.display();
+
+
+
+// Serial CSV logging
+
+
+Serial.print(millis()/1000);
+
+Serial.print(",");
+
+Serial.print(avgHR);
+
+Serial.print(",");
+
+Serial.println(avgSpO2);
+
+
+
+
+// Alert condition
+
+
+if(avgHR < 50 || avgHR > 120 || avgSpO2 <94){
+
+digitalWrite(LED_PIN,HIGH);
+
+Serial.println("WARNING: Abnormal Reading");
+
+}
+
+else{
+
+digitalWrite(LED_PIN,LOW);
+
+}
+
+
+
+delay(2000);
+
+
+}
