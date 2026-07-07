@@ -1,0 +1,270 @@
+#include <WiFi.h>
+#include <WebServer.h>
+
+
+// WiFi credentials
+
+const char* ssid="YOUR_WIFI";
+const char* password="YOUR_PASSWORD";
+
+
+// Sensor pins
+
+#define TRIG_PIN 5
+#define ECHO_PIN 18
+
+
+// Alert pins
+
+#define GREEN_LED 25
+#define YELLOW_LED 26
+#define RED_LED 27
+
+#define BUZZER 14
+
+
+
+WebServer server(80);
+
+
+// Rolling average
+
+float readings[10];
+
+int indexValue=0;
+
+
+
+float waterDistance=0;
+
+String status="NORMAL";
+
+
+
+
+//------------------------------------
+
+void setup(){
+
+
+Serial.begin(115200);
+
+
+pinMode(TRIG_PIN,OUTPUT);
+
+pinMode(ECHO_PIN,INPUT);
+
+
+
+pinMode(GREEN_LED,OUTPUT);
+pinMode(YELLOW_LED,OUTPUT);
+pinMode(RED_LED,OUTPUT);
+
+pinMode(BUZZER,OUTPUT);
+
+
+
+WiFi.begin(ssid,password);
+
+
+Serial.print("Connecting");
+
+while(WiFi.status()!=WL_CONNECTED){
+
+delay(500);
+
+Serial.print(".");
+
+}
+
+
+Serial.println();
+
+Serial.println(WiFi.localIP());
+
+
+
+server.on("/",dashboard);
+
+
+server.begin();
+
+}
+
+
+//------------------------------------
+
+void loop(){
+
+
+float distance=getDistance();
+
+
+
+readings[indexValue]=distance;
+
+indexValue++;
+
+if(indexValue>=10)
+indexValue=0;
+
+
+
+float average=0;
+
+
+for(int i=0;i<10;i++){
+
+average+=readings[i];
+
+}
+
+
+average/=10;
+
+
+
+waterDistance=average;
+
+
+
+checkLevel(average);
+
+
+
+server.handleClient();
+
+
+
+delay(1000);
+
+
+}
+
+
+//------------------------------------
+
+float getDistance(){
+
+
+digitalWrite(TRIG_PIN,LOW);
+
+delayMicroseconds(2);
+
+
+digitalWrite(TRIG_PIN,HIGH);
+
+delayMicroseconds(10);
+
+
+digitalWrite(TRIG_PIN,LOW);
+
+
+
+long duration=pulseIn(ECHO_PIN,HIGH);
+
+
+float distance=duration*0.034/2;
+
+
+return distance;
+
+
+}
+
+
+//------------------------------------
+
+void checkLevel(float d){
+
+
+
+digitalWrite(GREEN_LED,LOW);
+digitalWrite(YELLOW_LED,LOW);
+digitalWrite(RED_LED,LOW);
+
+noTone(BUZZER);
+
+
+
+// Normal
+
+if(d>30){
+
+status="NORMAL";
+
+digitalWrite(GREEN_LED,HIGH);
+
+}
+
+
+
+// Warning
+
+else if(d>=15 && d<=30){
+
+status="WARNING";
+
+digitalWrite(YELLOW_LED,HIGH);
+
+tone(BUZZER,1000,500);
+
+
+}
+
+
+
+// Critical
+
+else{
+
+status="CRITICAL";
+
+digitalWrite(RED_LED,HIGH);
+
+tone(BUZZER,2000);
+
+
+}
+
+
+Serial.print("Distance:");
+
+Serial.print(d);
+
+Serial.print(" cm ");
+
+Serial.println(status);
+
+
+}
+
+
+//------------------------------------
+
+void dashboard(){
+
+
+String page="<html>";
+
+page+="<h1>River Flood Monitoring</h1>";
+
+page+="<h2>Water Clearance: ";
+
+page+=String(waterDistance);
+
+page+=" cm</h2>";
+
+page+="<h2>Status: ";
+
+page+=status;
+
+page+="</h2>";
+
+page+="</html>";
+
+
+server.send(200,"text/html",page);
+
+
+}
